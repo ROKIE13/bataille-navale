@@ -12,7 +12,15 @@ class Joueur:
             bateauxPerso.append(bateau)
 
     def tour_de_jeu(self):
+        x = 
+        y = 
+        if #touche:
         
+        else:
+        
+        if #coulé:
+            self.score +=1
+    
+    def a_gagne(self):
+        if self.score == 6:
 
-    matrice = [[None for _ in range(3)] for _ in range(4)]
-        
