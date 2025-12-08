@@ -15,11 +15,11 @@ class Joueur:
         x = 
         y = 
         if #touche:
-        
+            if #coulé:
+            self.score +=1
         else:
         
-        if #coulé:
-            self.score +=1
+        
     
     def a_gagne(self):
         if self.score == 6:
