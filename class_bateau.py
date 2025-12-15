@@ -16,5 +16,10 @@ class bateau:
         return pos 
 
     def est_touche(self, x, y):
-        if
+        if (x, y) in self.position():
+            self.touches += 1
+            return True 
+        return False
     
+    def est_coule(self):
+        return self.touches >= self.taille
