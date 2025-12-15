@@ -5,14 +5,20 @@ class bateau:
         self.orientation = orientation
         self.taille = taille
         self.touche = 0
+        self.taille_grille = taille_grille
 
     def position(self):
         pos = []
         for i in range(self.taille):
             if self.orientation == H:
-                pos.append(self.x, self.y + 1)
+                x = self.x
+                y = self.y + 1
             else:
-                pos.append(self.x + 1, self.y)
+                x = self.x + 1
+                y = self.y
+            if x < 0 or y < 0 or x >= self.taille_grille or y >= self.taille_grille:
+                print ("Placement impossible : le bateau dépasse la grille")
+            pos.append((x, y))
         return pos 
 
     def est_touche(self, x, y):
