@@ -1,26 +1,55 @@
 from tkinter import *
 
-def coordonnees(event):
-    xe = event.x
-    ye = event.y
-    print("On clique en x = {} et y = {}".format(xe,ye))
+TAILLE_CASE = 40
+NB_CASES = 10
+MARGE = 40
+
+class Grille:
+    def __init__(self):
+        self.tab = [[None for _ in range(10)] for _ in range(10)]
+
+    def tirer(self, ligne, colonne):
+        if self.tab[ligne][colonne] is None:
+            self.tab[ligne][colonne] = "O"
+            return "eau"
+        return "deja"
+
+def clic(event):
+    x = event.x - MARGE
+    y = event.y - MARGE
+
+    if 0 <= x < NB_CASES * TAILLE_CASE and 0 <= y < NB_CASES * TAILLE_CASE:
+        colonne = x // TAILLE_CASE
+        ligne = y // TAILLE_CASE
+
+        resultat = grille.tirer(ligne, colonne)
+
+        cx = MARGE + colonne * TAILLE_CASE + TAILLE_CASE // 2
+        cy = MARGE + ligne * TAILLE_CASE + TAILLE_CASE // 2
+
+        if resultat == "eau":
+            canvas.create_text(cx, cy, text="O", fill="blue", font=("Arial", 18, "bold"))
+
+grille = Grille()
 
 window = Tk()
-window.title("My Application")
-window.geometry("1080x720")
-window.minsize(480, 360)
-window.config(background='#5CACF2')
+window.title("Bataille navale")
 
-label_title = Label(window, text="Bataille navale")
-label_title.pack()
-
-boutton = Button(text = "Confirmer")
-boutton.pack()
-
-image = PhotoImage(file="grille.png").room(35).subsample(32)
-canvas  = Canvas(window, width = 720, height = 180)
+canvas = Canvas(window, width=500, height=500, bg="white")
 canvas.pack()
 
-window.bind('<Button-1>',coordonnees)
+# Grille graphique
+for i in range(NB_CASES + 1):
+    canvas.create_line(MARGE,
+                        MARGE + i * TAILLE_CASE,
+                       MARGE + NB_CASES * TAILLE_CASE,
+                       MARGE + i * TAILLE_CASE)
+
+    canvas.create_line(MARGE + i * TAILLE_CASE,
+                        MARGE,
+                       MARGE + i * TAILLE_CASE,
+                       MARGE + NB_CASES * TAILLE_CASE)
+
+canvas.bind("<Button-1>", clic)
 
 window.mainloop()
