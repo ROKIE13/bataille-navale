@@ -71,10 +71,12 @@ class Joueur:
             taille = self.tailles_disponibles.pop(
                 random.randint(0, len(self.tailles_disponibles) - 1)
             )
+            x = int(input("Colonne (1-10) : ")) - 1
+            y = int(input("Ligne (1-10) : ")) - 1
 
             bateau = Bateau(
-                random.randint(0, 9),
-                random.randint(0, 9),
+                x,
+                y,
                 random.choice(["H", "V"]),
                 taille
             )
