@@ -6,7 +6,7 @@ TAILLE_CASE = 40
 NB_CASES = 10
 MARGE = 40
 
-# ===================== CLASSES =====================
+
 
 class Grille:
     def __init__(self):
@@ -75,7 +75,7 @@ class Joueur:
                 return "touche"
         return "eau"
 
-# ===================== TKINTER =====================
+
 
 window = Tk()
 window.title("Bataille Navale")
@@ -90,7 +90,7 @@ frame_j2.grid(row=0, column=0, sticky="nsew")
 def afficher_frame(frame):
     frame.tkraise()
 
-# ===================== CANVAS =====================
+
 
 def creer_canvas(frame):
     c1 = Canvas(frame, width=500, height=500, bg="white")
@@ -116,7 +116,7 @@ def dessiner_grille(canvas):
 for c in [canvas_perso_1, canvas_attaque_1, canvas_perso_2, canvas_attaque_2]:
     dessiner_grille(c)
 
-# ===================== JEU =====================
+
 
 joueur1 = Joueur("Joueur 1")
 joueur2 = Joueur("Joueur 2")
@@ -162,4 +162,36 @@ def clic_attaque(event):
 
     canvas = canvas_attaque_1 if joueur_actif == joueur1 else canvas_attaque_2
 
-    x = (event.y -
+    x = (event.y - MARGE) // TAILLE_CASE
+    y = (event.x - MARGE) // TAILLE_CASE
+
+    if 0 <= x < NB_CASES and 0 <= y < NB_CASES:
+        resultat = joueur_actif.tour_de_jeu(joueur_cible, x, y)
+
+        cx = MARGE + y * TAILLE_CASE + 20
+        cy = MARGE + x * TAILLE_CASE + 20
+
+        if resultat == "eau":
+            canvas.create_text(cx, cy, text="X", fill="blue")
+        elif resultat == "touche":
+            canvas.create_text(cx, cy, text="X", fill="red")
+        elif resultat == "coule":
+            canvas.create_text(cx, cy, text="X", fill="black")
+        elif resultat == "victoire":
+            messagebox.showinfo("Fin", f"{joueur_actif.nom} a gagné !")
+            window.destroy()
+            return
+
+        joueur_actif, joueur_cible = joueur_cible, joueur_actif
+        afficher_frame(frame_j1 if joueur_actif == joueur1 else frame_j2)
+
+
+
+canvas_perso_1.bind("<Button-1>", lambda e: clic_placement(joueur1, canvas_perso_1, e))
+canvas_perso_2.bind("<Button-1>", lambda e: clic_placement(joueur2, canvas_perso_2, e))
+
+canvas_attaque_1.bind("<Button-1>", clic_attaque)
+canvas_attaque_2.bind("<Button-1>", clic_attaque)
+
+afficher_frame(frame_j1)
+window.mainloop()
