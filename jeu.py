@@ -1,8 +1,6 @@
 import random
 
-# =======================
-# GRILLE
-# =======================
+
 class Grille:
     def __init__(self):
         self.largeur = 10
@@ -15,9 +13,7 @@ class Grille:
         print()
 
 
-# =======================
-# BATEAU
-# =======================
+
 class Bateau:
     def __init__(self, x, y, orientation, taille):
         self.x = x
@@ -54,9 +50,7 @@ class Bateau:
         return len(self.touches) == self.taille
 
 
-# =======================
-# JOUEUR
-# =======================
+
 class Joueur:
     def __init__(self, nom):
         self.nom = nom
@@ -113,9 +107,6 @@ class Joueur:
         return self.issue
 
 
-# =======================
-# JEU
-# =======================
 joueur1 = Joueur(input("Nom du joueur 1 : "))
 joueur2 = Joueur(input("Nom du joueur 2 : "))
 
