@@ -1,3 +1,4 @@
+
 import random
 from tkinter import *
 from tkinter import messagebox
@@ -18,6 +19,7 @@ class Bateau:
         self.taille = taille
         self.positions = self.calcul_positions(x, y)
         self.touches = set()
+    
 
     def calcul_positions(self, x, y):
         pos = []
@@ -45,8 +47,7 @@ class Joueur:
         self.bateaux = []
         self.tailles_disponibles = [5, 4, 3, 3, 2]
 
-    def placement_bateau(self, x, y, taille):
-        orientation = random.choice(["H", "V"])
+    def placement_bateau(self, x, y, orientation, taille):
         bateau = Bateau(x, y, orientation, taille)
 
         for i, j in bateau.positions:
@@ -102,6 +103,8 @@ def creer_canvas(frame):
 canvas_perso_1, canvas_attaque_1 = creer_canvas(frame_j1)
 canvas_perso_2, canvas_attaque_2 = creer_canvas(frame_j2)
 
+
+
 def dessiner_grille(canvas):
     for i in range(NB_CASES + 1):
         canvas.create_line(
@@ -131,18 +134,33 @@ def clic_placement(joueur, canvas, event):
     if not joueur.tailles_disponibles:
         return
 
+    taille = joueur.tailles_disponibles.pop(0)
+    if taille == 5:
+        messagebox.showinfo("Placement", "placez votre Porte-avions")
+    elif taille == 4:
+        messagebox.showinfo("Placement", "placez votre Croiseur")
+    elif taille == 3:
+        messagebox.showinfo("Placement", "placez votre Contre-torpilleur")
+    elif taille == 2:
+        messagebox.showinfo("Placement", "placez votre Torpilleur")
+
     x = (event.y - MARGE) // TAILLE_CASE
     y = (event.x - MARGE) // TAILLE_CASE
 
     if 0 <= x < NB_CASES and 0 <= y < NB_CASES:
-        taille = joueur.tailles_disponibles.pop(0)
-        if joueur.placement_bateau(x, y, taille):
+        reponse = messagebox.askquestion("Choix d'orientation", "voulez vous le placer de façon horizontale ?")
+        if reponse == 'yes':
+            orientation = "H"
+        else:
+            orientation = "V"
+        if joueur.placement_bateau(x, y, orientation, taille):
             for i, j in joueur.bateaux[-1].positions:
                 cx = MARGE + j * TAILLE_CASE + 20
                 cy = MARGE + i * TAILLE_CASE + 20
                 canvas.create_rectangle(cx-15, cy-15, cx+15, cy+15, fill="gray")
         else:
             joueur.tailles_disponibles.insert(0, taille)
+            messagebox.showinfo("Attention", "Vous ne pouvez pas le placer ici pour cause de débordement")
 
     if not joueur.tailles_disponibles:
         if joueur == joueur1:
@@ -156,7 +174,11 @@ def clic_placement(joueur, canvas, event):
 
 def clic_attaque(event):
     global joueur_actif, joueur_cible
-
+    canvas_perso_1.itemconfigure("all", state="hidden")
+    bt_blue = Button(window, text="Blue", command=lambda: can.config(bg="blue"))
+    bt_blue_w = canvas_attaque_1.create_window(40, 20, window=bt_blue)
+    bt_red = Button(window, text="Blue", command=lambda: can.config(bg="red"))
+    bt_red_w = canvas_attaque_2.create_window(40, 20, window=bt_red)
     if phase != "attaque":
         return
 
@@ -175,8 +197,15 @@ def clic_attaque(event):
             canvas.create_text(cx, cy, text="X", fill="blue")
         elif resultat == "touche":
             canvas.create_text(cx, cy, text="X", fill="red")
+            messagebox.showinfo("Touché", f"{joueur_actif.nom} a touché un bateau cible de" f"{joueur_cible.nom}")
         elif resultat == "coule":
-            canvas.create_text(cx, cy, text="X", fill="black")
+            for bateau in joueur_cible.bateaux:
+                if bateau.est_coule():
+                    for i, j in bateau.positions:
+                        cx = MARGE + j * TAILLE_CASE + 20
+                        cy = MARGE + i * TAILLE_CASE + 20
+                        canvas.create_text(cx, cy, text="X", fill="black")
+            messagebox.showinfo("Coulé", f"{joueur_actif.nom} a coulé un bateau cible de " f" {joueur_cible.nom}")
         elif resultat == "victoire":
             messagebox.showinfo("Fin", f"{joueur_actif.nom} a gagné !")
             window.destroy()
