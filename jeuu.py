@@ -127,6 +127,40 @@ joueur2 = Joueur("Joueur 2")
 joueur_actif = joueur1
 joueur_cible = joueur2
 phase = "placement"
+test = "auto"
+
+def placement_automatique(test, joueur, canvas, e):
+    global phase
+
+    if test == "auto":
+        placements = [
+            (2, 3, 'H', 5),
+            (1, 0, 'V', 4),
+            (5, 5, 'H', 3),
+            (7, 1, 'V', 3),
+            (4, 2, 'H', 2)
+        ]
+
+        for x, y, orientation, taille in placements:
+            ok = joueur.placement_bateau(x, y, orientation, taille)
+            if ok:
+                bateau = joueur.bateaux[-1]
+                for i, j in bateau.positions:
+                    cx = MARGE + j * TAILLE_CASE + 20
+                    cy = MARGE + i * TAILLE_CASE + 20
+                    canvas.create_rectangle(
+                        cx-15, cy-15, cx+15, cy+15, fill="gray"
+                    )
+
+        if joueur == joueur1:
+            afficher_frame(frame_j2)
+            canvas_perso_1.itemconfigure("all", state="hidden")
+        else:
+            phase = "attaque"
+            afficher_frame(frame_j1)
+            canvas_perso_2.itemconfigure("all", state="hidden")
+    else : 
+        clic_placement(joueur, canvas, event)
 
 def clic_placement(joueur, canvas, event):
     global phase
@@ -172,15 +206,46 @@ def clic_placement(joueur, canvas, event):
             global phase
             phase = "attaque"
 
+frame_boutons = Frame(frame_j1)
+frame_boutons.grid(row=10, column=0, columnspan=4, pady=10)
+
+
 def clic_attaque(event):
     global joueur_actif, joueur_cible
-    canvas_perso_1.itemconfigure("all", state="hidden")
-    bt_blue = Button(window, text="Blue", command=lambda: can.config(bg="blue"))
-    bt_blue_w = canvas_attaque_1.create_window(40, 20, window=bt_blue)
-    bt_red = Button(window, text="Blue", command=lambda: can.config(bg="red"))
-    bt_red_w = canvas_attaque_2.create_window(40, 20, window=bt_red)
     if phase != "attaque":
         return
+
+    # Masquer les canvas persos
+    
+    
+
+    # Bouton grille pour canvas_attaque_1
+    bouton1 = Button(
+        frame_boutons,
+        text="Afficher la grille",
+        command=lambda: (
+            canvas_attaque_1.itemconfigure("grille", state="normal"),
+            window.after(
+                2000,
+                lambda: canvas_attaque_1.itemconfigure("grille", state="hidden")
+            )
+        )
+    ).grid(row=0, column=0, padx=5)
+   
+
+    # Bouton grille pour canvas_attaque_2
+    bouton2 = Button(
+        frame_boutons,
+        text="Afficher la grille",
+        command=lambda: (
+            canvas_attaque_2.itemconfigure("grille", state="normal"),
+            window.after(
+                2000,
+                lambda: canvas_attaque_2.itemconfigure("grille", state="hidden")
+            )
+        )
+    ).grid(row=0, column=0, padx=5)
+
 
     canvas = canvas_attaque_1 if joueur_actif == joueur1 else canvas_attaque_2
 
@@ -216,8 +281,8 @@ def clic_attaque(event):
 
 
 
-canvas_perso_1.bind("<Button-1>", lambda e: clic_placement(joueur1, canvas_perso_1, e))
-canvas_perso_2.bind("<Button-1>", lambda e: clic_placement(joueur2, canvas_perso_2, e))
+canvas_perso_1.bind("<Button-1>", lambda e: placement_automatique(test, joueur1, canvas_perso_1, e))
+canvas_perso_2.bind("<Button-1>", lambda e: placement_automatique(test, joueur2, canvas_perso_2, e))
 
 canvas_attaque_1.bind("<Button-1>", clic_attaque)
 canvas_attaque_2.bind("<Button-1>", clic_attaque)
