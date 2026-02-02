@@ -190,11 +190,9 @@ def placement_automatique(test, joueur, canvas, e):
 
         if joueur == joueur1:
             afficher_frame(frame_j2)
-            canvas_perso_1.itemconfigure("all", state="hidden")
         else:
             phase = "attaque"
             afficher_frame(frame_j1)
-            canvas_perso_2.itemconfigure("all", state="hidden")
     else : 
         clic_placement(joueur, canvas, event)
 
@@ -245,6 +243,9 @@ def clic_placement(joueur, canvas, event):
 frame_boutons = Frame(frame_j1)
 frame_boutons.grid(row=10, column=0, columnspan=4, pady=10)
 
+def affichage_couleur(couleur):
+    return
+
 
 def clic_attaque(event):
     global joueur_actif, joueur_cible
@@ -256,34 +257,11 @@ def clic_attaque(event):
     
 
     # Bouton grille pour canvas_attaque_1
-    bouton1 = Button(
-        frame_boutons,
-        text="Afficher la grille",
-        command=lambda: (
-            canvas_attaque_1.itemconfigure("grille", state="normal"),
-            window.after(
-                2000,
-                lambda: canvas_attaque_1.itemconfigure("grille", state="hidden")
-            )
-        )
-    ).grid(row=0, column=0, padx=5)
-   
 
-    # Bouton grille pour canvas_attaque_2
-    bouton2 = Button(
-        frame_boutons,
-        text="Afficher la grille",
-        command=lambda: (
-            canvas_attaque_2.itemconfigure("grille", state="normal"),
-            window.after(
-                2000,
-                lambda: canvas_attaque_2.itemconfigure("grille", state="hidden")
-            )
-        )
-    ).grid(row=0, column=0, padx=5)
-
-
+    canvas_perso = canvas_perso_1 if joueur_actif == joueur1 else canvas_perso_2
     canvas = canvas_attaque_1 if joueur_actif == joueur1 else canvas_attaque_2
+    canva_adv = canvas_attaque_2 if joueur_actif == joueur1 else canvas_attaque_1
+    canvas_perso_adv = canvas_perso_2 if joueur_actif == joueur1 else canvas_perso_1
 
     x = (event.y - MARGE) // TAILLE_CASE
     y = (event.x - MARGE) // TAILLE_CASE
@@ -296,9 +274,13 @@ def clic_attaque(event):
 
         if resultat == "eau":
             canvas.create_text(cx, cy, text="X", fill="blue")
+            canvas_perso.itemconfigure("all", state="hidden")
+            canvas.itemconfigure("all", state="hidden")
         elif resultat == "touche":
             canvas.create_text(cx, cy, text="X", fill="red")
-            messagebox.showinfo("Touché", f"{joueur_actif.nom} a touché un bateau cible de" f"{joueur_cible.nom}")
+            canvas_perso.itemconfigure("all", state="hidden")
+            canvas.itemconfigure("all", state="hidden")
+            messagebox.showinfo("Touché", f"{joueur_actif.nom} a touché un bateau cible de " f"{joueur_cible.nom}")
         elif resultat == "coule":
             for bateau in joueur_cible.bateaux:
                 if bateau.est_coule():
@@ -306,13 +288,18 @@ def clic_attaque(event):
                         cx = MARGE + j * TAILLE_CASE + 20
                         cy = MARGE + i * TAILLE_CASE + 20
                         canvas.create_text(cx, cy, text="X", fill="black")
+            canvas.itemconfigure("all", state="hidden")
+            canvas_perso.itemconfigure("all", state="hidden")
             messagebox.showinfo("Coulé", f"{joueur_actif.nom} a coulé un bateau cible de " f" {joueur_cible.nom}")
         elif resultat == "victoire":
             messagebox.showinfo("Fin", f"{joueur_actif.nom} a gagné !")
             window.destroy()
             return
-
+        
         joueur_actif, joueur_cible = joueur_cible, joueur_actif
+        canva_adv.itemconfigure("all", state="normal")
+        canvas_perso_adv.itemconfigure("all", state="normal")
+        messagebox.showinfo("Tour", "Au tour de " f"{joueur_cible.nom}")
         afficher_frame(frame_j1 if joueur_actif == joueur1 else frame_j2)
 
 
