@@ -1,0 +1,190 @@
+import random
+from tkinter import *
+from tkinter import messagebox
+
+TAILLE_CASE = 40
+NB_CASES = 10
+MARGE = 40
+
+
+class Grille:
+    def __init__(self):
+        self.tab = [[None for _ in range(NB_CASES)] for _ in range(NB_CASES)]
+
+
+class Bateau:
+    def __init__(self, x, y, orientation, taille):
+        self.orientation = orientation
+        self.taille = taille
+        self.positions = self.calcul_positions(x, y)
+        self.touches = set()
+
+    def calcul_positions(self, x, y):
+        pos = []
+        for i in range(self.taille):
+            if self.orientation == "H":
+                pos.append((x, y + i))
+            else:
+                pos.append((x + i, y))
+        return pos
+
+    def est_touche(self, x, y):
+        if (x, y) in self.positions:
+            self.touches.add((x, y))
+            return True
+        return False
+
+    def est_coule(self):
+        return len(self.touches) == self.taille
+
+
+class Joueur:
+    def __init__(self, nom):
+        self.nom = nom
+        self.grillePerso = Grille()
+        self.grilleAdv = Grille()
+        self.bateaux = []
+        self.tailles_disponibles = [5, 4, 3, 3, 2]
+
+    def placement_bateau(self, x, y, orientation, taille):
+        bateau = Bateau(x, y, orientation, taille)
+
+        for i, j in bateau.positions:
+            if i < 0 or j < 0 or i >= NB_CASES or j >= NB_CASES:
+                return False
+            if self.grillePerso.tab[i][j] == "R":
+                return False
+
+        self.bateaux.append(bateau)
+        for i, j in bateau.positions:
+            self.grillePerso.tab[i][j] = "R"
+        return True
+
+    def tour_de_jeu(self, other, x, y):
+        if self.grilleAdv.tab[x][y] is not None:
+            return "deja"
+
+        self.grilleAdv.tab[x][y] = "X"
+
+        for bateau in other.bateaux:
+            if bateau.est_touche(x, y):
+                if bateau.est_coule():
+                    if all(b.est_coule() for b in other.bateaux):
+                        return "victoire"
+                    return "coule"
+                return "touche"
+        return "eau"
+
+
+# ---------------- INTERFACE ---------------- #
+
+window = Tk()
+window.title("Bataille Navale")
+window.geometry("1050x520")
+
+frame_j1 = Frame(window)
+frame_j2 = Frame(window)
+
+frame_j1.grid(row=0, column=0, sticky="nsew")
+frame_j2.grid(row=0, column=0, sticky="nsew")
+
+
+def afficher_frame(frame):
+    frame.tkraise()
+
+
+def creer_canvas(frame):
+    c1 = Canvas(frame, width=500, height=500, bg="white")
+    c2 = Canvas(frame, width=500, height=500, bg="white")
+    c1.grid(row=0, column=0)
+    c2.grid(row=0, column=1)
+    return c1, c2
+
+
+canvas_perso_1, canvas_attaque_1 = creer_canvas(frame_j1)
+canvas_perso_2, canvas_attaque_2 = creer_canvas(frame_j2)
+
+
+def dessiner_grille(canvas):
+    for i in range(NB_CASES + 1):
+        canvas.create_line(
+            MARGE, MARGE + i * TAILLE_CASE,
+            MARGE + NB_CASES * TAILLE_CASE, MARGE + i * TAILLE_CASE
+        )
+        canvas.create_line(
+            MARGE + i * TAILLE_CASE, MARGE,
+            MARGE + i * TAILLE_CASE, MARGE + NB_CASES * TAILLE_CASE
+        )
+
+
+for c in [canvas_perso_1, canvas_attaque_1, canvas_perso_2, canvas_attaque_2]:
+    dessiner_grille(c)
+
+
+joueur1 = Joueur("Joueur 1")
+joueur2 = Joueur("Joueur 2")
+
+joueur_actif = joueur1
+joueur_cible = joueur2
+phase = "attaque"
+
+
+# ---------------- ATTAQUE ---------------- #
+
+def clic_attaque(event):
+    global joueur_actif, joueur_cible
+
+    if phase != "attaque":
+        return
+
+    canvas = canvas_attaque_1 if joueur_actif == joueur1 else canvas_attaque_2
+
+    x = (event.y - MARGE) // TAILLE_CASE
+    y = (event.x - MARGE) // TAILLE_CASE
+
+    if 0 <= x < NB_CASES and 0 <= y < NB_CASES:
+        resultat = joueur_actif.tour_de_jeu(joueur_cible, x, y)
+
+        x1 = MARGE + y * TAILLE_CASE
+        y1 = MARGE + x * TAILLE_CASE
+        x2 = x1 + TAILLE_CASE
+        y2 = y1 + TAILLE_CASE
+
+        if resultat == "eau":
+            canvas.create_rectangle(x1, y1, x2, y2, fill="lightblue")
+
+        elif resultat == "touche":
+            canvas.create_rectangle(x1, y1, x2, y2, fill="red")
+            messagebox.showinfo(
+                "Touché",
+                f"{joueur_actif.nom} a touché un bateau de {joueur_cible.nom}"
+            )
+
+        elif resultat == "coule":
+            for bateau in joueur_cible.bateaux:
+                if bateau.est_coule():
+                    for i, j in bateau.positions:
+                        x1 = MARGE + j * TAILLE_CASE
+                        y1 = MARGE + i * TAILLE_CASE
+                        x2 = x1 + TAILLE_CASE
+                        y2 = y1 + TAILLE_CASE
+                        canvas.create_rectangle(x1, y1, x2, y2, fill="black")
+            messagebox.showinfo(
+                "Coulé",
+                f"{joueur_actif.nom} a coulé un bateau de {joueur_cible.nom}"
+            )
+
+        elif resultat == "victoire":
+            messagebox.showinfo("Fin", f"{joueur_actif.nom} a gagné !")
+            window.destroy()
+            return
+
+        joueur_actif, joueur_cible = joueur_cible, joueur_actif
+        afficher_frame(frame_j1 if joueur_actif == joueur1 else frame_j2)
+
+
+canvas_attaque_1.bind("<Button-1>", clic_attaque)
+canvas_attaque_2.bind("<Button-1>", clic_attaque)
+
+afficher_frame(frame_j1)
+window.mainloop()
