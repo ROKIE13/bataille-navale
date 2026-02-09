@@ -1,0 +1,21 @@
+def affichage_couleur(joueur, canvas):
+    # On efface uniquement les anciens rectangles de bateaux
+    canvas.delete("bateau")
+
+    for bateau in joueur.bateaux:
+        for (x, y) in bateau.positions:
+            cx = MARGE + y * TAILLE_CASE + TAILLE_CASE // 2
+            cy = MARGE + x * TAILLE_CASE + TAILLE_CASE // 2
+
+            # Couleur selon l'état
+            if (x, y) in bateau.touches:
+                couleur = "black"   # bateau touché
+            else:
+                couleur = "pink"    # bateau intact
+
+            canvas.create_rectangle(
+                cx - 15, cy - 15,
+                cx + 15, cy + 15,
+                fill=couleur,
+                tags="bateau"
+            )
