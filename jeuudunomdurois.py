@@ -256,8 +256,28 @@ def clic_placement(joueur, canvas, event):
 frame_boutons = Frame(frame_j1)
 frame_boutons.grid(row=10, column=0, columnspan=4, pady=10)
 
-def affichage_couleur(couleur):
-    return
+def affichage_couleur(joueur, canvas):
+    canvas.config(bg="lightblue")
+    # On efface uniquement les anciens rectangles de bateaux
+    canvas.delete("bateau")
+
+    for bateau in joueur.bateaux:
+        for (x, y) in bateau.positions:
+            cx = MARGE + y * TAILLE_CASE + TAILLE_CASE // 2
+            cy = MARGE + x * TAILLE_CASE + TAILLE_CASE // 2
+
+            # Couleur selon l'état
+            if (x, y) in bateau.touches:
+                couleur = "black"   # bateau touché
+            else:
+                couleur = "pink"    # bateau intact
+
+            canvas.create_rectangle(
+                cx - 15, cy - 15,
+                cx + 15, cy + 15,
+                fill=couleur,
+                tags="bateau"
+            )
 
 
 def clic_attaque(event):
@@ -266,7 +286,10 @@ def clic_attaque(event):
         return
 
     # Masquer les canvas persos
-    
+    if joueur_actif == joueur1:
+        affichage_couleur (joueur_actif, canvas_perso_1)
+    else:
+        affichage_couleur (joueur_actif, canvas_perso_2)
     
 
     # Bouton grille pour canvas_attaque_1
