@@ -40,12 +40,14 @@ class Bateau:
         return len(self.touches) == self.taille
 
 class Joueur:
-    def __init__(self, nom):
+    def __init__(self, nom, simulation=False):
+        self.simulation=simulation
         self.nom = nom
         self.grillePerso = Grille()
         self.grilleAdv = Grille()
         self.bateaux = []
         self.tailles_disponibles = [5, 4, 3, 3, 2]
+        
 
     def placement_bateau(self, x, y, orientation, taille):
         bateau = Bateau(x, y, orientation, taille)
@@ -122,7 +124,12 @@ for c in [canvas_perso_1, canvas_attaque_1, canvas_perso_2, canvas_attaque_2]:
 
 
 joueur1 = Joueur("Joueur 1")
-joueur2 = Joueur("Joueur 2")
+
+nb_joueurs=messagebox.askquestion("Choix des Joueurs", "Voulez vous jouer à 2 ?")
+if nb_joueurs=='yes':
+    joueur2 = Joueur("Joueur 2")
+else:
+    joueur2 = Joueur("Joueur 2", True)
 
 joueur_actif = joueur1
 joueur_cible = joueur2
@@ -146,7 +153,8 @@ def demander_noms_joueurs():
             return
 
         joueur1 = Joueur(nom1.get())
-        joueur2 = Joueur(nom2.get())
+        if not joueur2.simulation:
+            joueur2 = Joueur(nom2.get())
 
         joueur_actif = joueur1
         joueur_cible = joueur2
@@ -211,23 +219,28 @@ def clic_placement(joueur, canvas, event):
         messagebox.showinfo("Placement", "placez votre Contre-torpilleur")
     elif taille == 2:
         messagebox.showinfo("Placement", "placez votre Torpilleur")
+    if joueur.simulation:
+        x=random.randint(0,9)
+        y=random.randint(0,9)
+        orientation = random.choice(["H", "V"])
+    else:
+        x = (event.y - MARGE) // TAILLE_CASE
+        y = (event.x - MARGE) // TAILLE_CASE
 
-    x = (event.y - MARGE) // TAILLE_CASE
-    y = (event.x - MARGE) // TAILLE_CASE
-
-    if 0 <= x < NB_CASES and 0 <= y < NB_CASES:
-        reponse = messagebox.askquestion("Choix d'orientation", "voulez vous le placer de façon horizontale ?")
-        if reponse == 'yes':
-            orientation = "H"
-        else:
-            orientation = "V"
-        if joueur.placement_bateau(x, y, orientation, taille):
-            for i, j in joueur.bateaux[-1].positions:
-                cx = MARGE + j * TAILLE_CASE + 20
-                cy = MARGE + i * TAILLE_CASE + 20
-                canvas.create_rectangle(cx-15, cy-15, cx+15, cy+15, fill="gray")
-        else:
-            joueur.tailles_disponibles.insert(0, taille)
+        if 0 <= x < NB_CASES and 0 <= y < NB_CASES:
+            reponse = messagebox.askquestion("Choix d'orientation", "voulez vous le placer de façon horizontale ?")
+            if reponse == 'yes':
+                orientation = "H"
+            else:
+                orientation = "V"
+    if joueur.placement_bateau(x, y, orientation, taille):
+        for i, j in joueur.bateaux[-1].positions:
+            cx = MARGE + j * TAILLE_CASE + 20
+            cy = MARGE + i * TAILLE_CASE + 20
+            canvas.create_rectangle(cx-15, cy-15, cx+15, cy+15, fill="gray")
+    else:
+        joueur.tailles_disponibles.insert(0, taille)
+        if not joueur.simulation:
             messagebox.showinfo("Attention", "Vous ne pouvez pas le placer ici pour cause de débordement")
 
     if not joueur.tailles_disponibles:
@@ -262,9 +275,12 @@ def clic_attaque(event):
     canvas = canvas_attaque_1 if joueur_actif == joueur1 else canvas_attaque_2
     canva_adv = canvas_attaque_2 if joueur_actif == joueur1 else canvas_attaque_1
     canvas_perso_adv = canvas_perso_2 if joueur_actif == joueur1 else canvas_perso_1
-
-    x = (event.y - MARGE) // TAILLE_CASE
-    y = (event.x - MARGE) // TAILLE_CASE
+    if joueur_actif.simulation:
+        x=random.randint(0,9)
+        y=random.randint(0,9)
+    else:
+        x = (event.y - MARGE) // TAILLE_CASE
+        y = (event.x - MARGE) // TAILLE_CASE
 
     if 0 <= x < NB_CASES and 0 <= y < NB_CASES:
         resultat = joueur_actif.tour_de_jeu(joueur_cible, x, y)
